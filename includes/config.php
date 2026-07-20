@@ -10,8 +10,8 @@ $DB_PASS = '';
 
 $conn = mysqli_connect($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
 
-define('GMAIL_ADDRESS', 'benette8900@gmail.com');
-define('GMAIL_APP_PASSWORD', 'qgua xhiz rvyg nztl');
+define('GMAIL_ADDRESS', 'you_email_here');
+define('GMAIL_APP_PASSWORD', 'your_app_password'); // You can get app password by going to google account and search for app password then create yours
 
 if (!$conn) {
     die('Database connection failed: ' . mysqli_connect_error() .
