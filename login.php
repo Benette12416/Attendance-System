@@ -79,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="password" name="password" required>
         </div>
         <button type="submit" class="btn">Login</button>
+        <p>Test by jem</p>
     </form>
     <!--<p class="text-muted" style="text-align:center; margin-top:16px;">
         Default: admin / admin123
