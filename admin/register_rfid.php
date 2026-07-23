@@ -168,6 +168,7 @@ require_once '../includes/sidebar.php';
 <script>
     const scanInput = document.getElementById('scanInput');
     const scanResult = document.getElementById('scanResult');
+    const studentSelect = document.getElementById('studentSelect'); // Target the dropdown
 
     // No auto-focus on page load, and nothing steals focus away from the
     // Select Student dropdown. You tap scanInput yourself when you're ready
@@ -178,42 +179,53 @@ require_once '../includes/sidebar.php';
         if (e.key === 'Enter') {
             e.preventDefault();
             const rfid = scanInput.value.trim();
+            const studentId = studentSelect.value; // Get the selected student ID
+            
             scanInput.value = ''; // Clear display
+
+            // Validate that a student is actually selected
+            if (!studentId) {
+                scanResult.style.color = '#dc2626';
+                scanResult.innerText = 'Please select a student first.';
+                return;
+            }
 
             if (!rfid) return;
 
-            scanResult.innerText = 'Verifying...';
+            scanResult.innerText = 'Registering...';
             scanResult.style.color = 'var(--slate-500)';
 
-            fetch('/attendancesystem/api/scan.php', {
+            fetch('../api/scan.php', {
                 method: 'POST',
-                body: JSON.stringify({ rfid: rfid })
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': 'ESP32RFID2026'
+                },
+                // Send BOTH the uid and the student_id to the server
+                body: JSON.stringify({ uid: rfid, student_id: studentId }) 
             })
             .then(async response => {
                 const text = await response.text();
                 try {
                     const data = JSON.parse(text);
                     if (data.success) {
-                        scanResult.style.color = '#059669'; 
+                        scanResult.style.color = '#059669';
                         scanResult.innerText = 'Success!';
                         setTimeout(() => location.reload(), 1000);
                     } else {
-                        scanResult.style.color = '#dc2626'; 
+                        scanResult.style.color = '#dc2626';
                         scanResult.innerText = data.message || 'Incorrect RFID';
-                        scanInput.value = '';
                         scanInput.focus();
                     }
                 } catch (err) {
-                    scanResult.style.color = '#dc2626'; 
+                    scanResult.style.color = '#dc2626';
                     scanResult.innerText = 'Server Error! Press F12 and check Console.';
-                    scanInput.value = '';
                     scanInput.focus();
                 }
             })
             .catch(error => {
-                scanResult.style.color = '#dc2626'; 
-                scanResult.innerText = 'Network Error'; 
-                scanInput.value = '';
+                scanResult.style.color = '#dc2626';
+                scanResult.innerText = 'Network Error';
                 scanInput.focus();
             });
         }

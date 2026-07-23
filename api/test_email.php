@@ -7,8 +7,17 @@ require_once 'C:/xampp/htdocs/attendancesystem/vendor/autoload.php';
 /** @var mysqli $conn */
 header('Content-Type: application/json');
 
-// 1. Fetch the latest record to get the student's name and latest time
-$query = "SELECT s.fullname, s.email, a.time_in, a.time_out, a.date 
+// 1. Read the email address sent from the Settings page
+$input = json_decode(file_get_contents('php://input'), true);
+$targetEmail = trim($input['email'] ?? '');
+
+if (!filter_var($targetEmail, FILTER_VALIDATE_EMAIL)) {
+    echo json_encode(['success' => false, 'message' => 'Invalid email address provided.']);
+    exit;
+}
+
+// 2. Fetch the latest record to get sample data for the test template
+$query = "SELECT s.fullname, a.time_in, a.time_out, a.date 
           FROM attendance a 
           JOIN students s ON a.student_id = s.id 
           ORDER BY a.time_in DESC LIMIT 1";
@@ -27,9 +36,10 @@ if ($data) {
         $mail->Port       = 587;
 
         $mail->setFrom('attendancerfid2026@gmail.com', 'Attendance System');
-        $mail->addAddress($data['email']);
         
-        $studentName = $data['fullname'];
+        // 3. Send the email to the address typed in the settings UI!
+        $mail->addAddress($targetEmail); 
+        
         $date = date('M j, Y', strtotime($data['date']));
         $timeIn = $data['time_in'] ? date('h:i:s A', strtotime($data['time_in'])) : 'N/A';
         $timeOut = $data['time_out'] ? date('h:i:s A', strtotime($data['time_out'])) : '--';
@@ -45,8 +55,8 @@ if ($data) {
                 
                 <div style='background: #f8fafc; padding: 15px; border-radius: 6px; border-left: 4px solid #2563eb;'>
                     <p style='margin: 0;'><strong>Date:</strong> " . htmlspecialchars($date) . "</p>
-                    <p style='margin: 5px 0 0 0;'><strong>Time In:</strong> " . htmlspecialchars($timeIn) . "</p>
-                    <p style='margin: 5px 0 0 0;'><strong>Time Out:</strong> " . htmlspecialchars($timeOut) . "</p>
+                    <p style='margin: 5px 0 0 0;'><strong>Sample Time In:</strong> " . htmlspecialchars($timeIn) . "</p>
+                    <p style='margin: 5px 0 0 0;'><strong>Sample Time Out:</strong> " . htmlspecialchars($timeOut) . "</p>
                 </div>
                 
                 <p style='margin-top: 20px;'>If you have received this message, the email integration is fully operational.</p>
@@ -63,6 +73,6 @@ if ($data) {
         echo json_encode(['success' => false, 'message' => 'Email failed: ' . $mail->ErrorInfo]);
     }
 } else {
-    echo json_encode(['success' => false, 'message' => 'No attendance records found to test.']);
+    echo json_encode(['success' => false, 'message' => 'No attendance records found to generate a test email.']);
 }
 ?>

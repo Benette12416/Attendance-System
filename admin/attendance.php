@@ -277,9 +277,13 @@ require_once '../includes/sidebar.php';
             scanResult.innerText = 'Verifying...';
             scanResult.style.color = 'var(--slate-500)';
 
-            fetch('/attendancesystem/api/scan.php', {
+            fetch('../api/scan.php', {
                 method: 'POST',
-                body: JSON.stringify({ rfid: rfid })
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': 'ESP32RFID2026'
+                },
+                body: JSON.stringify({ uid: rfid })
             })
             .then(async response => {
                 const text = await response.text();
